@@ -1,11 +1,22 @@
 import { BadRequest, NotFound, GeneralError } from "../const/error.const.js";
 import { Listing } from "../models/listing.model.js";
+import { Property } from "../models/property.model.js";
 
 export class ListingsService {
-  static async createListing(user, listingData) {
+  static async createListing(user, listingData, propertyId) {
     try {
-      const { title, body } = listingData;
-      const listing = new Listing({ title, body, listedBy: user._id });
+      const { title, body, price } = listingData;
+      const property = await Property.findById(propertyId);
+
+      if (!property) throw "No property details";
+
+      const listing = new Listing({
+        price,
+        title,
+        body,
+        listedBy: user._id,
+        property: property,
+      });
 
       const createdListing = await listing.save();
 
@@ -15,13 +26,18 @@ export class ListingsService {
 
       return createdListing;
     } catch (error) {
+      console.log(error);
       throw new BadRequest(`Couldnt create listing, ERROR: ${error}`);
     }
   }
 
   static async getAllListings() {
     try {
-      const listings = await Listing.find({}).populate("listedBy", "fullname");
+      const listings = await Listing.find({})
+        .populate("listedBy", "fullname")
+        .populate({
+          path: "property",
+        });
 
       return listings;
     } catch (error) {

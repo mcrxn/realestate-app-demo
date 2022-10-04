@@ -4,10 +4,12 @@ export class ListingsController {
   static async createListing(req, res, next) {
     try {
       const listingData = req.body;
+      const { propertyId } = listingData;
       const user = req.user;
       const createdListing = await ListingsService.createListing(
         user,
-        listingData
+        listingData,
+        propertyId
       );
 
       res.status(201).send(createdListing);
